@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 
-const metrics = require('../../metrics.json');
+const { generateReviewScore } = require('../Utils/helpers');
 
 module.exports = (sequelize, DataTypes) => {
   class reviews extends Model {
@@ -21,11 +21,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('manual', 'auto', 'survey'),
       allowNull: false,
     },
+    // TODO: add reviewer type to add consumer and supplier types (future)
     reviewerId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    reviewName: {
+    reviewerName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -33,18 +34,23 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    reviewedName: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     reviewedType: {
       type: DataTypes.ENUM('facilities', 'providers', 'services', 'suppliers', 'consumers'),
       allowNull: false,
     },
+    // TODO: Get the type from mapping as a string instead 
     providerType: DataTypes.ENUM('operational', 'front-facing', 'managerial'),
     // type specific metrics
-    timeUtility: DataTypes.FLOAT,
-    servicesUtility: DataTypes.FLOAT,
-    responseTime: DataTypes.FLOAT,
-    payments: DataTypes.FLOAT,
-    sales: DataTypes.FLOAT,
-    profit: DataTypes.FLOAT,
+    timeUtility: DataTypes.INTEGER,
+    servicesUtility: DataTypes.INTEGER,
+    responseTime: DataTypes.INTEGER,
+    payments: DataTypes.INTEGER,
+    sales: DataTypes.INTEGER,
+    profit: DataTypes.INTEGER,
     durability: DataTypes.INTEGER,
     responseQuality: DataTypes.INTEGER,
     cleanliness: DataTypes.INTEGER,
@@ -55,11 +61,18 @@ module.exports = (sequelize, DataTypes) => {
     bookings: DataTypes.INTEGER,
     manner: DataTypes.INTEGER,
     communication: DataTypes.INTEGER,
+    score: DataTypes.INTEGER,
     note: DataTypes.TEXT()
   }, {
     sequelize,
     timestamps: true,
     modelName: 'reviews',
+    hooks: {
+      beforeCreate: (review) => {
+        review.total = generateReviewScore(review);
+      },
+    },
+
     // validate: {
     //   rating() {
     //     if (
