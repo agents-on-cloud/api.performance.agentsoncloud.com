@@ -3,19 +3,15 @@ const metrics = require("../../metrics.json")
 const moment = require("moment");
 const Op = db.Sequelize.Op
 
-const getRecords = async (model, id, { limit = null, offset = null, daysBefore }) => {
-    if (id) return await db.reviews.findOne({
-        where: {
-            ...(model && { reviewedType: model }),
-            ...(id && { reviewedId: id })
-        },
-    });
-    console.log({ offset });
+const getRecords = async (model, { limit, offset, daysBefore, orderBy, orderDesc }) => {
+    // TODO: move ordering to its own UTIL 
+    const orderByArray = (orderBy && orderBy.split(",")) || [];
+    const orderDescArray = (orderDesc && orderDesc.split(",")) || [];
+
     return await db.reviews.findAndCountAll({
         where: {
-            ...(model && {
-                reviewedType: model,
-            }),
+            ...(model && { reviewedType: model }),
+
             ...(daysBefore && {
                 createdAt: {
                     [Op.gte]: moment().subtract(daysBefore, 'days').toDate()
@@ -24,25 +20,27 @@ const getRecords = async (model, id, { limit = null, offset = null, daysBefore }
         },
         limit,
         offset,
-        order: db.sequelize.literal("score ASC"),
+        ...(orderByArray.length ? { order: [...orderByArray.map((order, idx) => [order, `${orderDescArray[idx] === "true" ? "DESC" : "ASC"}`])] } : { order: [["score", "ASC"]] })
     });
 }
 
-const getGroupedRecords = async (model, id, { limit = null, offset = null, daysBefore }) => {
+const getGroupedRecords = async (model, { limit = null, offset = null, daysBefore, orderBy, orderDesc }) => {
     let validMetrics = getValidMetrics(model);
+    const orderByArray = (orderBy && orderBy.split(",")) || [];
+    const orderDescArray = (orderDesc && orderDesc.split(",")) || [];
+    console.log((orderByArray.length ? { order: [...orderByArray.map((order, idx) => [order, `${orderDescArray[idx] === "true" ? "DESC" : "ASC"}`])] } : { order: [[db.sequelize.fn('AVG', db.sequelize.col('score')), "ASC"]] })
+    );
     const attributes = [
         "reviewedName",
         [db.sequelize.fn('COUNT', db.sequelize.col('reviewedId')), 'number_of_reviews'],
-        [db.sequelize.fn('AVG', db.sequelize.col('score')), 'avg_score'],
-        ...validMetrics.map(metric => [db.sequelize.fn('AVG', db.sequelize.col(`${metric.name}`)), `avg_${metric.name}`])
+        [db.sequelize.fn('AVG', db.sequelize.col('score')), 'score'],
+        ...validMetrics.map(metric => [db.sequelize.fn('AVG', db.sequelize.col(`${metric.name}`)), `${metric.name}`])
     ];
 
     if (model === "providers") attributes.push("providerType");
-
-    return await db.reviews.findAll({
+    return await db.reviews.findAndCountAll({
         where: {
             reviewedType: model,
-            ...(id && { reviewedId: id }),
             ...(daysBefore && {
                 createdAt: {
                     [Op.gte]: moment().subtract(daysBefore, 'days').toDate()
@@ -53,32 +51,7 @@ const getGroupedRecords = async (model, id, { limit = null, offset = null, daysB
         offset,
         attributes,
         group: 'reviewedId',
-        order: db.sequelize.literal("avg_score ASC"),
-    });
-}
-
-const getWorstRecords = async (model, { limit = 5, offset = null, daysBefore }) => {
-    let validMetrics = getValidMetrics(model);
-
-    return await db.reviews.findAll({
-        offset,
-        limit,
-        order: db.sequelize.literal("avg_score ASC"),
-        ...(model && {
-            attributes: [
-                "reviewerName", "reviewedName", "createdAt",
-                [db.sequelize.fn('AVG', db.sequelize.col('score')), 'avg_score'],
-                ...validMetrics.map(metric => metric.name)
-            ],
-            where: {
-                reviewedType: model,
-                ...(daysBefore && {
-                    createdAt: {
-                        [Op.gte]: moment().subtract(daysBefore, 'days').toDate()
-                    }
-                })
-            }
-        }),
+        ...(orderByArray.length ? { order: [...orderByArray.map((order, idx) => [db.sequelize.fn('AVG', db.sequelize.col(`${order}`)), `${orderDescArray[idx] === "true" ? "DESC" : "ASC"}`])] } : { order: [[db.sequelize.fn('AVG', db.sequelize.col('score')), "ASC"]] })
     });
 }
 
@@ -94,4 +67,4 @@ const createRecord = async (model, body) => {
     return await db[model].create(body);
 };
 
-module.exports = { getRecords, createRecord, getGroupedRecords, getWorstRecords }
+module.exports = { getRecords, createRecord, getGroupedRecords }
