@@ -1,19 +1,24 @@
-const metrics = require('../../metrics.json');
+const generateScores = (review, options) => {
+    console.log(options);
+    // let total = 0;
+    // let count = 0;
+    // const metricsArray = review.reviewedType !== 'providers' ? metrics[review.reviewedType] :
+    //     metrics[review.reviewedType][review.providerType]
 
-const generateReviewScore = (review) => {
-    let total = 0;
-    let count = 0;
-    const metricsArray = review.reviewedType !== 'providers' ? metrics[review.reviewedType] :
-        metrics[review.reviewedType][review.providerType]
+    // metricsArray.forEach(metric => {
+    //     if (metric.base === 100 && review[metric.name]) {
+    //         count++;
+    //         total += review[metric.name];
+    //     }
+    // });
 
-    metricsArray.forEach(metric => {
-        if (metric.base === 100 && review[metric.name]) {
-            count++;
-            total += review[metric.name];
-        }
-    });
-
-    return parseInt(total / count);
+    return { score: 0, socialScore: 0 }
 }
 
-module.exports = { generateReviewScore };
+const defaultSort = (model) => {
+    if (model.tableName === "reviews") return { order: [["score", "ASC"]] };
+
+    return {};
+}
+
+module.exports = { generateScores, defaultSort };

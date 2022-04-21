@@ -1,7 +1,8 @@
 var express = require("express");
-var reviewRoutes = require("./reviews");
+var dynamicRouter = require("./dynamic");
+var reviewsRouter = require("./reviews");
 
 const router = express.Router();
-router.use(reviewRoutes);
+router.use([dynamicRouter, reviewsRouter]);
 
 module.exports = router;
