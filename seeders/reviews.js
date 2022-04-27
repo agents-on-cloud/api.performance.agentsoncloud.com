@@ -1,10 +1,11 @@
 'use strict';
 const { faker } = require('@faker-js/faker');
-const { generateScores } = require('../Utils/helpers');
+
+const { getValidMetrics } = require('../services/metrics');
+const { randomizeMetrics, calculateScores } = require('../Utils/helpers');
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    let [schema] = await queryInterface.sequelize.query("select * from metrics WHERE orgId = -1", { type: queryInterface.sequelize.QueryTypes.SELECT });
     const newData = [];
     const providerNames = [];
     const facilityNames = [];
@@ -31,7 +32,7 @@ module.exports = {
 
     // randomize reviewed names
     for (let i = 1; i <= 25; i++) {
-      const facility = ['room', 'equipment'][Math.round(Math.random() * 2)]
+      const facility = ['room', 'equipment'][Math.round(Math.random())]
       facilityNames.push({
         name: faker.name.jobTitle() + ' ' + facility,
         type: 'facilities.' + facility,
@@ -59,18 +60,15 @@ module.exports = {
       const { name: reviewedName, id: reviewedId, type: reviewedType = chosenType } = allReviewedNames[chosenType][Math.round(Math.random() * (allReviewedNames[chosenType].length - 1))]
 
       // fills in the metrics for all entities and providers (special, per role/providerType metric)
-      const reviewMetrics = {};
-      Object.keys(schema).forEach(key => {
-        const values = JSON.parse(schema[key]);
-
-        if (values[reviewedType]) {
-          reviewMetrics[key] = (Math.random() * values[reviewedType].max).toFixed(2);
-        }
-      })
+      const validMetrics = await getValidMetrics(reviewedType, -1);
+      const reviewMetrics = randomizeMetrics(validMetrics);
 
       // gets the reviewerId, and reviewer name after randomizing system/user generation
       const reviewer = providerNames[Math.round(Math.random() * (providerNames.length - 1))];
       const { id: reviewerId, name: reviewerName } = reviewer;
+
+      // calculate the end goal of score and socialScore 
+      const { score, socialScore } = calculateScores(reviewMetrics, validMetrics);
 
       const seedData = {
         generatedBy: "manual",

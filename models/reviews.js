@@ -78,7 +78,6 @@ module.exports = (sequelize, DataTypes) => {
     // TODO: move score generation to cronjob for auto reviews that does 1 daily review summation for all reviewed entities that day
     // hooks: {
     // beforeCreate: (review, options) => {
-    //   console.log(review, options);
     //   ({ score: review.score, socialScore: review.socialScore } = generateScores(review, options))
     // },
     // },

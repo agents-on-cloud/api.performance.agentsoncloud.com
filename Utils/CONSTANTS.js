@@ -1,10 +1,10 @@
 const REVIEWED_TYPES_ARRAY = [
-    'facilities.room', 'facilities.equipments', 'facilities.establishment',
-    'providers.front', 'providers.operational', 'providers.managerial',
-    'services', 'suppliers', 'consumers'];
+    'facilities', 'facilities.room', 'facilities.equipments', 'facilities.establishment',
+    'providers', 'providers.front', 'providers.operational', 'providers.managerial',
+    'services', 'suppliers', 'consumers', "reviews"];
 const PARAM_TYPES_MAP = {
-    metrics: "orgId",
-    reviews: "reviewedType",
-    others: "id"
+    metrics: { name: "orgId", op: "eq" },
+    reviews: { name: "reviewedType", op: "substring" },
+    others: { name: "id", op: "eq" }
 }
 module.exports = { REVIEWED_TYPES_ARRAY, PARAM_TYPES_MAP };

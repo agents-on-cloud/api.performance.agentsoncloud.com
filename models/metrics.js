@@ -4,16 +4,8 @@ const {
 } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-    class metrics extends Model {
-        /**
-         * Helper method for defining associations.
-         * This method is not a part of Sequelize lifecycle.
-         * The `models/index` file will call this method automatically.
-         */
-        static associate(models) {
-            // define association here
-        }
-    }
+    class metrics extends Model { };
+
     // All metrics here represent weight
     // Min max help get value as percentage of between, relative_value = absolute_value-min/(max-min)
     // Average total score is each sum(relative_value * weight)/sum(weights)
@@ -28,6 +20,9 @@ module.exports = (sequelize, DataTypes) => {
         timeUtility: {
             type: DataTypes.JSON,
             defaultValue: {
+                "facilities": {
+                    min: 0, max: 28800000, weight: 1
+                },
                 "facilities.room": {
                     min: 0, max: 28800000, weight: 1
                 },
@@ -36,13 +31,17 @@ module.exports = (sequelize, DataTypes) => {
                 },
                 "services": {
                     min: 0, max: 28800000, weight: 1
-                }
+                },
+                text: "Time Utility"
             },
         },
         servicesUtility: {
             type: DataTypes.JSON,
             defaultValue: {
                 entities: {
+                    "facilities": {
+                        min: 0, max: 28800000, weight: 1
+                    },
                     "facilities.room": {
                         min: 0, max: 28800000, weight: 1
                     },
@@ -51,7 +50,8 @@ module.exports = (sequelize, DataTypes) => {
                     },
                     "providers.front": {
                         min: 0, max: 28800000, weight: 1
-                    }
+                    },
+                    text: "Service Utility"
                 },
             },
         },
@@ -66,7 +66,8 @@ module.exports = (sequelize, DataTypes) => {
                 },
                 "suppliers": {
                     min: 0, max: 900000, weight: 1
-                }
+                },
+                text: "Response Time"
             }
         },
         returningCustomers: {
@@ -74,7 +75,8 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: {
                 "services": {
                     min: 0, max: 3, weight: 1
-                }
+                },
+                text: "Returning Customers"
             }
         },
         bookings: {
@@ -82,16 +84,19 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: {
                 "services": {
                     min: 0, max: 10, weight: 1
-                }
+                },
+                text: "# of Bookings"
             },
         },
+
         // money related
         sales: {
             type: DataTypes.JSON,
             defaultValue: {
                 "providers.front": {
                     min: 0, max: 500, weight: 1
-                }
+                },
+                text: "Sales"
             },
         },
         profit: {
@@ -99,7 +104,8 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: {
                 "services": {
                     min: 0, max: 500, weight: 1
-                }
+                },
+                text: "Profit"
             },
         },
         payments: {
@@ -107,7 +113,8 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: {
                 "consumers": {
                     min: 0, max: 500, weight: 1
-                }
+                },
+                text: "Payments"
             },
         },
 
@@ -115,29 +122,39 @@ module.exports = (sequelize, DataTypes) => {
         durability: {
             type: DataTypes.JSON,
             defaultValue: {
+                "facilities": {
+                    min: 0, max: 1, weight: 1
+                },
                 "facilities.room": {
                     min: 0, max: 1, weight: 1
                 },
                 "facilities.equipment": {
-                    min: 0, max: 28800000, weight: 1
+                    min: 0, max: 1, weight: 1
                 },
+                isSocial: true,
+                text: "Is it broken yet?"
             },
         },
         cleanliness: {
             type: DataTypes.JSON,
             defaultValue: {
+                "facilities": {
+                    min: 0, max: 1, weight: 1
+                },
                 "facilities.room": {
                     min: 0, max: 1, weight: 1
                 },
                 "facilities.equipment": {
-                    min: 0, max: 28800000, weight: 1
+                    min: 0, max: 1, weight: 1
                 },
                 "providers.front": {
                     min: 0, max: 1, weight: 1
                 },
-                "services": {
+                "consumers": {
                     min: 0, max: 1, weight: 1
-                }
+                },
+                isSocial: true,
+                text: "Is it clean?"
             },
         },
         responseQuality: {
@@ -151,7 +168,9 @@ module.exports = (sequelize, DataTypes) => {
                 },
                 "suppliers": {
                     min: 0, max: 1, weight: 1
-                }
+                },
+                isSocial: true,
+                text: "Was the response any good?",
             },
         },
         availability: {
@@ -162,7 +181,9 @@ module.exports = (sequelize, DataTypes) => {
                 },
                 "providers.front": {
                     min: 0, max: 1, weight: 1
-                }
+                },
+                isSocial: true,
+                text: "Were they available?",
             },
         },
         reachability: {
@@ -173,7 +194,9 @@ module.exports = (sequelize, DataTypes) => {
                 },
                 "providers.front": {
                     min: 0, max: 1, weight: 1
-                }
+                },
+                isSocial: true,
+                text: "Were they reachable?",
             },
         },
         punctuality: {
@@ -185,25 +208,31 @@ module.exports = (sequelize, DataTypes) => {
                 "providers.front": {
                     min: 0, max: 1, weight: 1
                 },
-                "services": {
+                "consumers": {
                     min: 0, max: 1, weight: 1
-                }
+                },
+                isSocial: true,
+                text: "Were they punctual?",
             },
         },
         manner: {
             type: DataTypes.JSON,
             defaultValue: {
-                "services": {
+                "consumers": {
                     min: 0, max: 1, weight: 1
-                }
+                },
+                isSocial: true,
+                text: "Polite or Rude?",
             },
         },
         communication: {
             type: DataTypes.JSON,
             defaultValue: {
-                "services": {
+                "consumers": {
                     min: 0, max: 1, weight: 1
-                }
+                },
+                isSocial: true,
+                text: "Were the talks useful?",
             },
         },
     }, {
@@ -211,13 +240,14 @@ module.exports = (sequelize, DataTypes) => {
         sequelize,
         modelName: 'metrics',
         validate: {
-            checkMinMax() {
+            checkJSON() {
                 if (this.orgId !== "-1") Object.keys(this).forEach(metric => {
                     if (
                         this[metric].min || this[metric].max ||
                         isNan(this[metric].min) || isNan(this[metric.max]) ||
-                        this[metric].min < 0 || this[metric].max <= 0 || this[metric].max < this[metric].min
-                    ) throw new Error('Min and Max must be positive and logical');
+                        this[metric].min < 0 || this[metric].max <= 0 || this[metric].max < this[metric].min ||
+                        this[metric].weight < 1
+                    ) throw new Error('Min and Max must be positive and logical And Weight be above 1');
                 })
             }
         }
