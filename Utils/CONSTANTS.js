@@ -1,5 +1,5 @@
 const REVIEWED_TYPES_ARRAY = [
-    'facilities', 'facilities.room', 'facilities.equipments', 'facilities.establishment',
+    'facilities', 'facilities.room', 'facilities.equipment', 'facilities.establishment',
     'providers', 'providers.front', 'providers.operational', 'providers.managerial',
     'services', 'suppliers', 'consumers', "reviews"];
 const PARAM_TYPES_MAP = {
