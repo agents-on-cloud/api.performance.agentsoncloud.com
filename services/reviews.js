@@ -10,6 +10,7 @@ const getGroupedRecords = async (reviewedType, { orgId, id, reviewedId, limit = 
 
     const attributes = [
         'id',
+        "reviewedId",
         "reviewedName",
         "reviewedType",
         [db.sequelize.fn('COUNT', db.sequelize.col('reviewedId')), 'number_of_reviews'],
@@ -40,8 +41,33 @@ const getGroupedRecords = async (reviewedType, { orgId, id, reviewedId, limit = 
     });
 }
 
+const getNormalRecords = async (reviewedType, { orgId, reviewedId, daysBefore }) => {
+    return await db.models.reviews.findAll({
+        where: {
+            reviewedType: {
+                [Op.substring]: reviewedType
+            },
+            ...(reviewedId && { reviewedId }),
+            ...(daysBefore && {
+                createdAt: {
+                    [Op.gte]: moment().subtract(daysBefore, 'days').toDate()
+                }
+            })
+        },
+        attributes: ["score", "socialScore", "createdAt"],
+        order: [["createdAt", "ASC"]],
+    });
+}
+
+const getMovingRecords = async ({ orgId, id, reviewedId, limit = null, offset = null, daysBefore, orderBy, orderDesc }) => {
+    return await db.sequelize.query(`SELECT *, AVG(score) OVER(ORDER BY createdAt ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) as moving_average FROM reviews WHERE reviewedId = ${reviewedId}`, {
+        model: db.models.reviews,
+        mapToModel: true // pass true here if you have any mapped fields
+    });
+}
+
 const createReviewRecord = async (body) => {
     return await db.reviews.create(body);
 };
 
-module.exports = { getGroupedRecords, createReviewRecord }
+module.exports = { getGroupedRecords, getMovingRecords, getNormalRecords, createReviewRecord }
