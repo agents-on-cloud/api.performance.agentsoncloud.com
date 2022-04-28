@@ -3,7 +3,8 @@ const {
   Model
 } = require('sequelize');
 
-const { generateReviewScore } = require('../Utils/helpers');
+const { REVIEWED_TYPES_ARRAY } = require('../Utils/CONSTANTS');
+const { generateScores } = require('../Utils/helpers');
 
 module.exports = (sequelize, DataTypes) => {
   class reviews extends Model {
@@ -18,8 +19,9 @@ module.exports = (sequelize, DataTypes) => {
   }
   reviews.init({
     generatedBy: {
-      type: DataTypes.ENUM('manual', 'auto', 'survey'),
-      allowNull: false,
+      // Manual represents the moment record by people, auto is a daily generated record by system that includes manual values of that day
+      type: DataTypes.ENUM('manual', 'auto'),
+      defaultValue: "manual",
     },
     // TODO: add reviewer type to add consumer and supplier types (future)
     reviewerId: {
@@ -35,52 +37,50 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     reviewedName: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
     },
     reviewedType: {
-      type: DataTypes.ENUM('facilities', 'providers', 'services', 'suppliers', 'consumers'),
+      type: DataTypes.ENUM(...REVIEWED_TYPES_ARRAY),
       allowNull: false,
     },
-    // TODO: Get the type from mapping as a string instead 
-    providerType: DataTypes.ENUM('operational', 'front-facing', 'managerial'),
-    // type specific metrics
-    timeUtility: DataTypes.INTEGER,
-    servicesUtility: DataTypes.INTEGER,
-    responseTime: DataTypes.INTEGER,
-    payments: DataTypes.INTEGER,
-    sales: DataTypes.INTEGER,
-    profit: DataTypes.INTEGER,
-    durability: DataTypes.INTEGER,
-    responseQuality: DataTypes.INTEGER,
-    cleanliness: DataTypes.INTEGER,
-    availability: DataTypes.INTEGER,
-    reachability: DataTypes.INTEGER,
-    punctuality: DataTypes.INTEGER,
-    returningCustomers: DataTypes.INTEGER,
-    bookings: DataTypes.INTEGER,
-    manner: DataTypes.INTEGER,
-    communication: DataTypes.INTEGER,
-    score: DataTypes.INTEGER,
-    note: DataTypes.TEXT()
+
+    // system generated
+    timeUtility: DataTypes.FLOAT,
+    servicesUtility: DataTypes.FLOAT, // get what with
+    responseTime: DataTypes.FLOAT,
+    returningCustomers: DataTypes.FLOAT,
+    bookings: DataTypes.FLOAT,
+
+    // cash
+    payments: DataTypes.FLOAT,
+    sales: DataTypes.FLOAT,
+    profit: DataTypes.FLOAT,
+
+    // behavioral
+    durability: DataTypes.FLOAT,
+    cleanliness: DataTypes.FLOAT,
+    responseQuality: DataTypes.FLOAT,
+    availability: DataTypes.FLOAT,
+    reachability: DataTypes.FLOAT,
+    punctuality: DataTypes.FLOAT,
+    manner: DataTypes.FLOAT,
+    communication: DataTypes.FLOAT,
+
+    note: DataTypes.TEXT(),
+    score: DataTypes.FLOAT,
+    socialScore: DataTypes.FLOAT,
+    costBenefit: DataTypes.FLOAT
   }, {
     sequelize,
     timestamps: true,
     modelName: 'reviews',
-    hooks: {
-      beforeCreate: (review) => {
-        review.total = generateReviewScore(review);
-      },
-    },
-
-    // validate: {
-    //   rating() {
-    //     if (
-    //       (this.reviewedType === "provider") && (this.providerType === null)) {
-    //       throw new Error('Provider Type Missing');
-    //     }
-    //   }
-    // }
+    // TODO: move score generation to cronjob for auto reviews that does 1 daily review summation for all reviewed entities that day
+    // hooks: {
+    // beforeCreate: (review, options) => {
+    //   ({ score: review.score, socialScore: review.socialScore } = generateScores(review, options))
+    // },
+    // },
   });
 
   return reviews;

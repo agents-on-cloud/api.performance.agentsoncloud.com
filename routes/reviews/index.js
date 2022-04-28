@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 
-const getModel = require('../middlewares/dynamicHandler');
-const { getAllReviews, getModelReviews } = require('./controller');
+const { getReviewedType } = require('../middlewares/dynamicHandler');
+const { getGroupedReviews } = require('./controller');
 
-router.param("model", getModel); // makes sure model param gets checked
-router.get('/reviews/:model?', getAllReviews);
-router.get(`/reviews/average/:model`, getModelReviews);
+router.param("reviewedType", getReviewedType); // makes sure model parameter gets checked
+router.get(`/reviews/average/:reviewedType`, getGroupedReviews);
 
 module.exports = router;

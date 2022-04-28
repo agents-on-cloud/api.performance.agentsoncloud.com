@@ -1,26 +1,13 @@
-const { getRecords, getGroupedRecords, createRecord } = require('../../services/reviews.js')
+const { getGroupedRecords } = require('../../services/reviews.js')
 
-const getAllReviews = async (req, res) => {
-    const { model } = req.params;
-    const query = req.query;
+const getGroupedReviews = async (req, res) => {
+    const { query, reviewedType } = req;
     try {
-        let reviews = await getRecords(model, query);
-
-        return res.status(200).send(reviews);
-    } catch (error) {
-        res.status(501).send(error.toString());
-    }
-};
-
-const getModelReviews = async (req, res) => {
-    const { model } = req.params;
-    const query = req.query;
-    try {
-        const reviews = await getGroupedRecords(model, query);
+        const reviews = await getGroupedRecords(reviewedType, query);
         return res.status(200).send(reviews);
     } catch (error) {
         res.status(501).send(error.toString());
     }
 }
 
-module.exports = { getAllReviews, getModelReviews }
+module.exports = { getGroupedReviews }
