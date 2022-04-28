@@ -66,8 +66,21 @@ const getMovingRecords = async ({ orgId, id, reviewedId, limit = null, offset = 
     });
 }
 
+const getDistinctRecords = async (reviewedType, attribute) => {
+    return (await db.models.reviews.findAll({
+        where: {
+            reviewedType: {
+                [Op.substring]: reviewedType
+            },
+        },
+        attributes: [attribute],
+        group: [attribute]
+
+    })).map(item => item[attribute]);
+}
+
 const createReviewRecord = async (body) => {
     return await db.reviews.create(body);
 };
 
-module.exports = { getGroupedRecords, getMovingRecords, getNormalRecords, createReviewRecord }
+module.exports = { getGroupedRecords, getMovingRecords, getNormalRecords, getDistinctRecords, createReviewRecord }
